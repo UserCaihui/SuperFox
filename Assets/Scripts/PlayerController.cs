@@ -8,15 +8,16 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D playerBody;
     private Animator anim;
     public Collider2D playerCollider;
+    public Collider2D disColl;
     public LayerMask ground;
-    public Transform groundCheck;
+    public Transform ceilingCheck, groundCheck;
     public float speed;
     public float jumpForce;
-    bool isGround, jumpPressed, isHurt;
+    bool isGround, isCrouch, isHurt;
     int jumpCount = 2;//跳跃次数实现多段跳
 
-    public Text cherryNum,gemNum;
-    int cherry, gem;
+    public Text cherryNum,gemNum;   //用于显示收集的樱桃、宝石的数目
+    int cherry, gem;                //储存数目，其实收集了也没什么用
 
 
     // Start is called before the first frame update
@@ -25,15 +26,7 @@ public class PlayerController : MonoBehaviour
         playerBody = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetButtonDown("Jump") && jumpCount > 0)
-        {
-            jumpPressed = true;
-        }
-    }
+    
 
     void FixedUpdate()
     {
@@ -51,16 +44,36 @@ public class PlayerController : MonoBehaviour
     {
         //float horizontalMove = Input.GetAxis("Horizontal"); //获取水平移动方向
         float direction = Input.GetAxisRaw("Horizontal");   //获取方向，移动、转身
-        
+
         //移动
-        playerBody.velocity = new Vector2(direction * speed * Time.fixedDeltaTime, playerBody.velocity.y);
+        if (isCrouch)
+        {   //趴下状态移速减半
+            playerBody.velocity = new Vector2(direction * speed/2 * Time.fixedDeltaTime, playerBody.velocity.y);
+        }
+        else { playerBody.velocity = new Vector2(direction * speed * Time.fixedDeltaTime, playerBody.velocity.y); }
 
         //转身
         if(direction != 0)
         {
             playerBody.transform.localScale = new Vector3(direction, 1, 1);
         }
-       
+
+        //下蹲
+        if (!Physics2D.OverlapCircle(ceilingCheck.position, 0.1f, ground) && isGround)
+        {
+            if (Input.GetButtonDown("Crouch"))
+            {
+                disColl.enabled = false;
+                isCrouch = true;
+                anim.SetBool("crouching", true);
+            }
+            else if (Input.GetButtonUp("Crouch"))
+            {
+                disColl.enabled = true;
+                isCrouch = false;
+                anim.SetBool("crouching", false);
+            }
+        }
     }
 
     //人物跳跃
@@ -71,17 +84,15 @@ public class PlayerController : MonoBehaviour
         {
             jumpCount = 2;//每次落地后都能刷新跳跃次数
         }
-        if (jumpPressed && isGround)
+        if (Input.GetButtonDown("Jump") && isGround&&!isCrouch)
         {   //一段
             playerBody.velocity = new Vector2(playerBody.velocity.x, jumpForce);
             jumpCount--;
-            jumpPressed = false;
         }
-        else if (jumpPressed && jumpCount > 0 && !isGround)
+        else if (Input.GetButtonDown("Jump") && jumpCount > 0 && !isGround)
         {   //二段
             playerBody.velocity = new Vector2(playerBody.velocity.x, jumpForce);
             jumpCount--;
-            jumpPressed = false;
         }
 
     }
@@ -121,11 +132,15 @@ public class PlayerController : MonoBehaviour
         if (!isGround && playerBody.velocity.y < 0.2f) 
         {   //直接掉落
             anim.SetBool("falling", true);
+            //注意如果开始是趴下的状态，也要取消
+            disColl.enabled = true;
+            isCrouch = false;
+            anim.SetBool("crouching", false);
         }
        
     }
 
-    //获取物品
+    //触碰物品
     private void OnTriggerEnter2D(Collider2D collision)
     {
         //分别检测樱桃和钻石
@@ -135,12 +150,13 @@ public class PlayerController : MonoBehaviour
             cherry++;
             cherryNum.text = cherry.ToString();
         }
-        if (collision.CompareTag("gem"))
+        else if (collision.CompareTag("gem"))
         {
             Destroy(collision.gameObject);
             gem++;
             gemNum.text = gem.ToString();
         }
+
     }
 
     //触碰敌人的互动
