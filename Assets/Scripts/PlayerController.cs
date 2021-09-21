@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -26,15 +27,21 @@ public class PlayerController : MonoBehaviour
         playerBody = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
     }
-    
+
+    private void Update()
+    {   //优化跳跃手感
+        if (!isHurt)
+        {   //未受伤才能跳
+            Jump();
+        }
+    }
 
     void FixedUpdate()
     {
         isGround = Physics2D.OverlapCircle(groundCheck.position, 0.1f, ground);
         if (!isHurt)
-        {   //未受伤时才能移动及跳跃
+        {   //未受伤时才能移动
             Movement();
-            Jump();
         }
         SwitchAnim();
     }
@@ -61,13 +68,13 @@ public class PlayerController : MonoBehaviour
         //下蹲
         if (!Physics2D.OverlapCircle(ceilingCheck.position, 0.1f, ground) && isGround)
         {
-            if (Input.GetButtonDown("Crouch"))
+            if (Input.GetButton("Crouch"))
             {
                 disColl.enabled = false;
                 isCrouch = true;
                 anim.SetBool("crouching", true);
             }
-            else if (Input.GetButtonUp("Crouch"))
+            else
             {
                 disColl.enabled = true;
                 isCrouch = false;
@@ -156,7 +163,11 @@ public class PlayerController : MonoBehaviour
             gem++;
             gemNum.text = gem.ToString();
         }
-
+        ///死亡时切换场景
+        if (collision.CompareTag("deadline"))
+        {
+            Invoke("Restart", 1f);
+        }
     }
 
     //触碰敌人的互动
@@ -181,4 +192,9 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    void Restart()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
 }
