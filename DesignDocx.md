@@ -107,4 +107,24 @@
 ### 3.2 活动图
 ![alt 活动图](https://github.com/UserCaihui/SuperFox/blob/main/%E6%B4%BB%E5%8A%A8%E5%9B%BE.jpg)
 
+### 3.3 UI设计
 
+主菜单UI：
+
+![alt 主菜单](https://github.com/UserCaihui/SuperFox/blob/main/%E4%B8%BB%E8%8F%9C%E5%8D%95UI.jpg)
+
+介绍：
+- 开始：点击后开始游戏，进入第一关的场景。
+- 结束：点击后退出游戏
+
+游戏内UI：
+
+![alt 游戏](https://github.com/UserCaihui/SuperFox/blob/main/%E6%B8%B8%E6%88%8F%E5%86%85UI.jpg)
+
+介绍：
+- 左上角记录收集到的樱桃和宝石数目
+- || ：暂停按钮，点击后游戏暂停，然后弹出返回主菜单或是继续游戏的窗口
+-  X ：退出按钮，退出游戏。
+
+### 3.4 数据库设计
+本游戏不需要数据库。
